@@ -1,4 +1,4 @@
-name: simplelocalize_generator
+name: simplelocalize
 description: A new Flutter package project.
 version: 0.0.1
 homepage:
@@ -9,6 +9,7 @@ environment:
 dependencies:
   yaml: ^2.1.15
   path: ^1.7.0
+  dio: ^3.0.0
 
 dev_dependencies:
   test: ^1.11.1
