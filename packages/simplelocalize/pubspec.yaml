@@ -1,7 +1,7 @@
 name: simplelocalize
 description: A new Flutter package project.
 version: 0.0.1
-homepage:
+homepage: https://github.com/TheMisir/simplelocalize-flutter
 
 environment:
   sdk: ">=2.3.0 <3.0.0"
