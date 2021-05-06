@@ -3,6 +3,7 @@ library simplelocalize;
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
+import 'package:simplelocalize/src/formats/arb.dart';
 import 'package:yaml/yaml.dart';
 
 import 'src/formats/abstract.dart';
@@ -15,11 +16,12 @@ const kSimplelocalizeKey = 'simplelocalize';
 const kSimplelocalizeFormats = <String, SimplelocalizeBaseFormat>{
   'json': SimplelocalizeJsonFormat(),
   'yaml': SimplelocalizeYamlFormat(),
+  'arb': SimplelocalizeArbFormat(),
 };
 
 class SimplelocalizeGenerator {
-  SimplelocalizeConfig config;
-  SimplelocalizeBaseFormat format;
+  late SimplelocalizeConfig config;
+  late SimplelocalizeBaseFormat format;
 
   void validateConfig() {
     if (config.directory == null) {
@@ -30,7 +32,7 @@ class SimplelocalizeGenerator {
       error(2, 'Parameter "filename" is not defined in config file');
     }
 
-    if (!config.filename.contains('{1}')) {
+    if (!config.filename!.contains('{1}')) {
       error(
         2,
         'File name pattern should contain {1} argument which refers to '
@@ -61,26 +63,26 @@ class SimplelocalizeGenerator {
       config = SimplelocalizeConfig.fromMap(section);
       validateConfig();
       config.directory = path.join(path.dirname(file), config.directory);
-      format = kSimplelocalizeFormats[config.format];
+      format = kSimplelocalizeFormats[config.format]!;
     } else {
       error(1, 'SimpleLocalize config not found in $file');
     }
   }
 
   Future<void> download() async {
-    final result = await downloadTranslations(config.projectToken);
+    final result = await downloadTranslations(config.projectToken!);
 
     for (var item in result.entries) {
       final file = File(path.join(
-        config.directory,
-        formatPattern(config.filename, [item.key]),
+        config.directory!,
+        formatPattern(config.filename!, [item.key]),
       ));
       stdout.writeln('Writing ${item.value.length} entries to ${file.path}');
       await file.writeAsString(format.convert(item.value));
     }
   }
 
-  Future<void> publish({String apiKey}) async {
+  Future<void> publish({String? apiKey}) async {
     apiKey ??= config.apiKey;
 
     if (apiKey == null) {
@@ -93,9 +95,9 @@ class SimplelocalizeGenerator {
 
     stdout.writeln('Publishing...');
 
-    final result = await publishTranslations(apiKey);
+    final result = await publishTranslations(apiKey!);
 
-    for (var item in result.data['failtures'] ?? []) {
+    for (var item in result.data!['failtures'] ?? []) {
       stderr.writeln(item.toString());
     }
 
@@ -106,7 +108,7 @@ class SimplelocalizeGenerator {
     }
   }
 
-  Future<void> upload({String apiKey, bool publish = false}) async {
+  Future<void> upload({String? apiKey, bool publish = false}) async {
     apiKey ??= config.apiKey;
 
     if (apiKey == null) {
@@ -117,16 +119,16 @@ class SimplelocalizeGenerator {
       );
     }
 
-    final files = await Directory(config.directory)
+    final files = await Directory(config.directory!)
         .list(recursive: false, followLinks: false)
         .where((f) => f.statSync().type == FileSystemEntityType.file)
         .map((f) => File(f.path))
         .toList();
 
-    final items = List<TranslationEntry>();
+    final items = <TranslationEntry>[];
 
     for (var item in files) {
-      final match = matchPattern(path.basename(item.path), config.filename);
+      final match = matchPattern(path.basename(item.path), config.filename!);
       if (match == null) continue;
       final contents = await item.readAsString();
       final messages = format.parse(contents);
@@ -135,22 +137,22 @@ class SimplelocalizeGenerator {
         (key, value) => items.add(TranslationEntry(
           key: key,
           text: value,
-          language: match.group(1),
+          language: match.group(1)!,
         )),
       );
     }
 
-    final result = await uploadTranslations(apiKey, items);
+    final result = await uploadTranslations(apiKey!, items);
 
-    for (var item in result.data['failtures'] ?? []) {
+    for (var item in result.data!['failtures'] ?? []) {
       stderr.writeln(item.toString());
     }
 
     if (result.status == 200) {
       stdout.writeln('Upload completed!');
       stdout.writeln();
-      stdout.writeln('Updated: ${result.data['numberOfUpdates']}');
-      stdout.writeln('Inserted: ${result.data['numberOfInserts']}');
+      stdout.writeln('Updated: ${result.data!['numberOfUpdates']}');
+      stdout.writeln('Inserted: ${result.data!['numberOfInserts']}');
     } else {
       stdout.writeln('Failed to upload! [${result.msg}]');
     }
@@ -177,7 +179,7 @@ String formatPattern(String pattern, Iterable arguments) {
   return result;
 }
 
-RegExpMatch matchPattern(String text, String pattern) {
+RegExpMatch? matchPattern(String text, String pattern) {
   final re = pattern.replaceAll(RegExp(r'\{\d+\}'), '(.+)');
   return RegExp('^$re\$').firstMatch(text);
 }

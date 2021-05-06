@@ -17,7 +17,7 @@ Future<Map<String, Map<String, String>>> downloadTranslations(
     ),
   );
 
-  return response.data.map(
+  return response.data!.map(
     (k, v) => MapEntry<String, Map<String, String>>(
       k,
       (v as Map).cast<String, String>(),
@@ -48,7 +48,7 @@ Future<ServerResult> uploadTranslations(
     },
   );
 
-  return ServerResult.fromJson(response.data);
+  return ServerResult.fromJson(response.data!);
 }
 
 /// Publish translations using [publish translations](https://simplelocalize.io/docs/api/publish-translations/)
@@ -63,22 +63,25 @@ Future<ServerResult> publishTranslations(String apiKey) async {
     ),
   );
 
-  return ServerResult.fromJson(response.data);
+  return ServerResult.fromJson(response.data!);
 }
 
 /// Translation entry
 class TranslationEntry {
-  String key;
-  String language;
-  String text;
+  TranslationEntry({
+    required this.key,
+    required this.language,
+    required this.text,
+  });
 
-  TranslationEntry({this.key, this.language, this.text});
+  TranslationEntry.fromJson(Map<String, dynamic> json)
+      : key = json['key'],
+        language = json['language'],
+        text = json['text'];
 
-  TranslationEntry.fromJson(Map<String, dynamic> json) {
-    key = json['key'];
-    language = json['language'];
-    text = json['text'];
-  }
+  final String key;
+  final String language;
+  final String text;
 
   Map<String, dynamic> toJson() {
     final data = new Map<String, dynamic>();
@@ -91,19 +94,18 @@ class TranslationEntry {
 
 /// Result sent by the server
 class ServerResult {
-  String msg;
-  int status;
-  Map<String, dynamic> data;
+  ServerResult({required this.msg, required this.status, this.data});
 
-  ServerResult({this.msg, this.status, this.data});
+  ServerResult.fromJson(Map<String, dynamic> json)
+      : msg = json['msg'] as String,
+        status = json['status'] as int,
+        data = json['data'] != null
+            ? (json['data'] as Map).cast<String, dynamic>()
+            : null;
 
-  ServerResult.fromJson(Map<String, dynamic> json) {
-    msg = json['msg'];
-    status = json['status'];
-    data = json['data'] != null
-        ? (json['data'] as Map).cast<String, dynamic>()
-        : null;
-  }
+  final String msg;
+  final int status;
+  final Map<String, dynamic>? data;
 
   Map<String, dynamic> toJson() {
     final data = Map<String, dynamic>();
@@ -117,7 +119,7 @@ class ServerResult {
   String toString() {
     final sb = StringBuffer();
     sb.writeln('$status $msg');
-    data.forEach((key, value) {
+    data?.forEach((key, value) {
       sb.write('$key: ');
       if (value is List) {
         for (var item in value) {
