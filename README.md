@@ -17,7 +17,7 @@ Check [installing](https://pub.dev/packages/simplelocalize/install) section for 
 
 ### 2. Configure
 
-Go to your [simplelocalize dashboard](https://simplelocalize.io/dashboard/projects/) and select project then Credentials > Project credentails.
+Go to your [simplelocalize dashboard](https://simplelocalize.io/dashboard/projects/) and select project then 'Integrations' > 'Project credentails'.
 
 ![Project credentials](_assets/web_proj_credentials.png)
 
